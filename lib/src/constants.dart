@@ -1,0 +1,17 @@
+const int moshProtocolVersion = 2;
+const int moshDefaultServerPort = 60001;
+const int moshMaxServerPort = 60999;
+const int moshReceiveMtu = 2048;
+const int moshDefaultColors = 256;
+const int moshUdpMinPort = 1;
+const int moshUdpMaxPort = 65535;
+const int moshWireNonceLength = 8;
+const int moshAeadNoncePrefixLength = 4;
+const int moshAeadNonceLength = 12;
+const int moshAeadTagLength = 16;
+const int moshKeyLength = 16;
+const int moshPrintableKeyLength = 22;
+const int moshByteModulus = 256;
+const int moshDefaultSendMtu = 1200;
+const int moshDefaultReplayWindow = 1024;
+const int moshDefaultFragmentAssemblyLimit = 16;

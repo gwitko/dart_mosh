@@ -1,0 +1,21 @@
+name: dart_mosh
+description: "Dart building blocks for launching and speaking the Mosh mobile shell protocol."
+version: 0.0.1
+homepage: https://github.com/gwitko/dart_mosh
+repository: https://github.com/gwitko/dart_mosh
+issue_tracker: https://github.com/gwitko/dart_mosh/issues
+topics:
+  - mosh
+  - ssh
+  - terminal
+  - networking
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  pointycastle: ^4.0.0
+
+dev_dependencies:
+  lints: ^5.0.0
+  test: ^1.25.0
