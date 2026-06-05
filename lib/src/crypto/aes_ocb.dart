@@ -6,7 +6,9 @@ import 'package:pointycastle/block/aes.dart' show AESEngine;
 import '../exception.dart';
 import 'aead.dart';
 
+/// Pure Dart AES-OCB implementation compatible with stock `mosh-server`.
 class AesOcb implements MoshAead {
+  /// Creates an AES-OCB cipher with a 128, 192, or 256 bit AES [key].
   AesOcb(
     Uint8List key, {
     this.associatedData = const <int>[],
@@ -26,7 +28,10 @@ class AesOcb implements MoshAead {
     _associatedDataHash = _hash(Uint8List.fromList(associatedData));
   }
 
+  /// Associated data authenticated with each message.
   final List<int> associatedData;
+
+  /// Authentication tag length in bytes.
   final int tagLength;
   final _AesBlockCipher _aes;
   final List<Uint8List> _lValues = <Uint8List>[];
@@ -34,6 +39,7 @@ class AesOcb implements MoshAead {
   late final Uint8List _lDollar;
   late final Uint8List _associatedDataHash;
 
+  /// Encrypts [plaintext] and appends an authentication tag.
   @override
   Uint8List seal({required Uint8List nonce, required Uint8List plaintext}) {
     _checkNonce(nonce);
@@ -76,6 +82,7 @@ class AesOcb implements MoshAead {
     return ciphertext.takeBytes();
   }
 
+  /// Verifies and decrypts [ciphertextWithTag].
   @override
   Uint8List open({
     required Uint8List nonce,

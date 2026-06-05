@@ -2,15 +2,21 @@ import 'dart:typed_data';
 
 import 'protobuf.dart';
 
+/// Base class for client instructions sent inside a Mosh user message.
 sealed class MoshClientInstruction {
+  /// Creates a client instruction.
   const MoshClientInstruction();
 
+  /// Encodes this instruction as protobuf bytes.
   Uint8List encode();
 }
 
+/// Client keystroke instruction.
 class MoshKeystroke extends MoshClientInstruction {
+  /// Creates a keystroke instruction from terminal input bytes.
   const MoshKeystroke(this.keys);
 
+  /// Terminal input bytes.
   final List<int> keys;
 
   @override
@@ -21,10 +27,15 @@ class MoshKeystroke extends MoshClientInstruction {
   }
 }
 
+/// Client terminal resize instruction.
 class MoshResize extends MoshClientInstruction {
+  /// Creates a resize instruction.
   const MoshResize({required this.columns, required this.rows});
 
+  /// Terminal column count.
   final int columns;
+
+  /// Terminal row count.
   final int rows;
 
   @override
@@ -36,11 +47,15 @@ class MoshResize extends MoshClientInstruction {
   }
 }
 
+/// Client message containing one or more instructions.
 class MoshUserMessage {
+  /// Creates a user message from [instructions].
   const MoshUserMessage(this.instructions);
 
+  /// Instructions to encode in order.
   final List<MoshClientInstruction> instructions;
 
+  /// Encodes this message as protobuf bytes.
   Uint8List encode() {
     final writer = ProtoWriter();
     for (final instruction in instructions) {
@@ -50,12 +65,18 @@ class MoshUserMessage {
   }
 }
 
+/// Decoded host output and echo acknowledgement message.
 class MoshHostMessage {
+  /// Creates a decoded host message.
   const MoshHostMessage({this.hostBytes = const <int>[], this.echoAck});
 
+  /// Terminal output bytes from the server.
   final List<int> hostBytes;
+
+  /// Latest echo acknowledgement number, if present.
   final int? echoAck;
 
+  /// Decodes a host message from protobuf bytes.
   factory MoshHostMessage.decode(List<int> bytes) {
     final message = ProtoReader(bytes);
     final out = BytesBuilder(copy: false);

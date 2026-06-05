@@ -1,7 +1,9 @@
 import 'constants.dart';
 import 'exception.dart';
 
+/// Builds the SSH command used to start `mosh-server`.
 class MoshSshBootstrap {
+  /// Creates a bootstrap command builder.
   const MoshSshBootstrap({
     this.serverBinary = 'mosh-server',
     this.locale = 'en_US.UTF-8',
@@ -12,14 +14,28 @@ class MoshSshBootstrap {
     this.udpBindIp,
   });
 
+  /// Remote executable name or path.
   final String serverBinary;
+
+  /// Locale passed to `mosh-server`.
   final String locale;
+
+  /// Terminal type passed through the SSH environment.
   final String term;
+
+  /// Terminal color count passed with `-c`.
   final int colors;
+
+  /// First UDP port to request from `mosh-server`.
   final int serverPort;
+
+  /// Last UDP port to request from `mosh-server`.
   final int serverPortEnd;
+
+  /// Optional UDP bind address passed with `-i`.
   final String? udpBindIp;
 
+  /// Returns a shell-safe `mosh-server new` command.
   String command() {
     _checkPort(serverPort);
     _checkPort(serverPortEnd);

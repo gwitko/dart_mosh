@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.2
+
+- Added public API documentation.
+- Added package example.
+
 ## 0.0.1
 
 Initial release.

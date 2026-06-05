@@ -4,7 +4,9 @@ import 'dart:typed_data';
 import '../constants.dart';
 import '../exception.dart';
 
+/// A single Mosh fragment carrying part of a compressed transport instruction.
 class MoshFragment {
+  /// Creates a fragment.
   const MoshFragment({
     required this.id,
     required this.fragmentNum,
@@ -12,15 +14,28 @@ class MoshFragment {
     required this.contents,
   });
 
+  /// Number of bytes in a fragment header.
   static const int headerLength = 10;
+
+  /// Largest fragment number representable on the wire.
   static const int maxFragmentNum = 0x7fff;
+
+  /// Header bit marking the final fragment for an instruction.
   static const int finalFlag = 0x8000;
 
+  /// Fragment group identifier.
   final int id;
+
+  /// Zero-based index within the fragment group.
   final int fragmentNum;
+
+  /// Whether this is the final fragment in the group.
   final bool isFinal;
+
+  /// Fragment contents without the 10-byte header.
   final Uint8List contents;
 
+  /// Encodes this fragment to wire bytes.
   Uint8List encode() {
     final out = Uint8List(headerLength + contents.length);
     final header = ByteData.view(out.buffer, out.offsetInBytes, headerLength);
@@ -34,6 +49,7 @@ class MoshFragment {
     return out;
   }
 
+  /// Decodes a fragment from wire bytes.
   factory MoshFragment.decode(Uint8List bytes) {
     if (bytes.length < headerLength) {
       throw const MoshException('Mosh fragment is shorter than its header.');
@@ -52,6 +68,7 @@ class MoshFragment {
 const int _idOffset = 0;
 const int _fragmentNumOffset = 8;
 
+/// Splits [payload] into Mosh fragments with up to [mtu] content bytes each.
 List<MoshFragment> moshFragments(int id, Uint8List payload, int mtu) {
   if (mtu <= 0) {
     throw const MoshException('Fragment MTU must be positive.');
@@ -75,12 +92,16 @@ List<MoshFragment> moshFragments(int id, Uint8List payload, int mtu) {
   return fragments;
 }
 
+/// Reassembles Mosh fragments into complete payloads.
 class MoshFragmentAssembly {
+  /// Creates an assembler that keeps at most [maxConcurrent] partial payloads.
   MoshFragmentAssembly({this.maxConcurrent = moshDefaultFragmentAssemblyLimit});
 
+  /// Maximum number of partial payloads retained at once.
   final int maxConcurrent;
   final Map<int, _PartialMessage> _pending = <int, _PartialMessage>{};
 
+  /// Adds [fragment] and returns a complete payload when available.
   Uint8List? add(MoshFragment fragment) {
     final partial = _pending.putIfAbsent(fragment.id, _PartialMessage.new);
     partial.parts[fragment.fragmentNum] = fragment.contents;

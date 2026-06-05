@@ -3,7 +3,9 @@ import 'dart:typed_data';
 import '../constants.dart';
 import 'protobuf.dart';
 
+/// Mosh transport instruction carrying state numbers, diffs, and chaff.
 class MoshTransportInstruction {
+  /// Creates a transport instruction.
   const MoshTransportInstruction({
     this.protocolVersion = moshProtocolVersion,
     this.oldNum = 0,
@@ -14,14 +16,28 @@ class MoshTransportInstruction {
     this.chaff = const <int>[],
   });
 
+  /// Mosh protocol version carried in the instruction.
   final int protocolVersion;
+
+  /// Old client input state number.
   final int oldNum;
+
+  /// New client input state number.
   final int newNum;
+
+  /// Latest server output state acknowledged by the client.
   final int ackNum;
+
+  /// Client input state the sender is willing to discard.
   final int throwawayNum;
+
+  /// Encoded user or host message diff.
   final List<int> diff;
+
+  /// Random padding bytes.
   final List<int> chaff;
 
+  /// Encodes this instruction as protobuf bytes.
   Uint8List encode() {
     final writer = ProtoWriter();
     writer.uint32(_protocolVersionField, protocolVersion);
@@ -34,6 +50,7 @@ class MoshTransportInstruction {
     return writer.takeBytes();
   }
 
+  /// Decodes a transport instruction from protobuf bytes.
   factory MoshTransportInstruction.decode(List<int> bytes) {
     final reader = ProtoReader(bytes);
     var protocolVersion = moshProtocolVersion;

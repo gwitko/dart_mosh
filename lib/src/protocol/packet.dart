@@ -2,20 +2,31 @@ import 'dart:typed_data';
 
 import '../exception.dart';
 
+/// Mosh transport packet header plus one encrypted payload fragment.
 class MoshTransportPacket {
+  /// Creates a transport packet.
   const MoshTransportPacket({
     required this.timestamp,
     required this.timestampReply,
     required this.payload,
   });
 
+  /// Number of bytes in the timestamp header.
   static const int headerLength = 4;
+
+  /// Timestamp value used when no timestamp is available.
   static const int noTimestamp = 0xffff;
 
+  /// Sender timestamp modulo 16 bits.
   final int timestamp;
+
+  /// Reply timestamp modulo 16 bits, or [noTimestamp].
   final int timestampReply;
+
+  /// Encoded fragment payload.
   final Uint8List payload;
 
+  /// Encodes this packet header and payload.
   Uint8List encode() {
     final out = Uint8List(headerLength + payload.length);
     final header = ByteData.view(out.buffer, out.offsetInBytes, headerLength);
@@ -29,6 +40,7 @@ class MoshTransportPacket {
     return out;
   }
 
+  /// Decodes a transport packet from plaintext bytes.
   factory MoshTransportPacket.decode(Uint8List bytes) {
     if (bytes.length < headerLength) {
       throw const MoshException(

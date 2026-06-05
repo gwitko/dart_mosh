@@ -1,3 +1,10 @@
+/// Dart building blocks for launching and speaking the Mosh mobile shell
+/// protocol.
+///
+/// The package owns the Mosh UDP transport. Applications still own SSH,
+/// terminal rendering, and process lifecycle.
+library;
+
 export 'src/constants.dart';
 export 'src/crypto/aead.dart';
 export 'src/crypto/aes_ocb.dart';

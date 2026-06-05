@@ -16,6 +16,7 @@ import 'protocol/rtt.dart';
 import 'protocol/transport.dart';
 import 'server_config.dart';
 
+/// UDP Mosh session for terminal input, output, acknowledgements, and rehoming.
 class MoshSession {
   MoshSession._({
     required RawDatagramSocket socket,
@@ -73,18 +74,24 @@ class MoshSession {
   var _peerTimestampAt = 0;
   var _ackDeadline = -1;
 
+  /// Stream of host output bytes.
   Stream<List<int>> get stdout => _stdout.stream;
 
+  /// Stream of non-fatal socket, parse, and crypto errors.
   Stream<Object> get errors => _stderr.stream;
 
+  /// Stream of echo acknowledgement numbers from the server.
   Stream<int> get echoAcks => _echoAcks.stream;
 
+  /// Completes when the session is closed.
   Future<void> get done => _done.future;
 
+  /// Current smoothed round-trip time, if a sample has been received.
   Duration? get smoothedRtt => _rtt.hasSample
       ? Duration(microseconds: (_rtt.srtt * 1000).round())
       : null;
 
+  /// Opens a UDP session to [server].
   static Future<MoshSession> connect({
     required MoshServerConfig server,
     required MoshCipher cipher,
@@ -115,6 +122,7 @@ class MoshSession {
     );
   }
 
+  /// Queues terminal input bytes and returns the resulting input state number.
   int send(List<int> data) {
     if (data.isEmpty) return _assumedAckNum + _pending.length;
     _pending.add(MoshKeystroke(List<int>.of(data)));
@@ -122,12 +130,14 @@ class MoshSession {
     return _assumedAckNum + _pending.length;
   }
 
+  /// Queues a terminal resize and returns the resulting input state number.
   int resize(int columns, int rows) {
     _pending.add(MoshResize(columns: columns, rows: rows));
     _pump();
     return _assumedAckNum + _pending.length;
   }
 
+  /// Rebinds the local UDP socket while keeping the Mosh session state.
   Future<void> rehome({
     InternetAddress? localAddress,
     int localPort = 0,
@@ -159,6 +169,7 @@ class MoshSession {
     }
   }
 
+  /// Closes the UDP socket and all streams.
   Future<void> close() async {
     if (_closed) return;
     _closed = true;

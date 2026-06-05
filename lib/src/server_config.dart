@@ -2,7 +2,9 @@ import 'constants.dart';
 import 'exception.dart';
 import 'key.dart';
 
+/// Connection details parsed from a `MOSH CONNECT` line.
 class MoshServerConfig {
+  /// Creates a server configuration.
   const MoshServerConfig({
     required this.host,
     required this.port,
@@ -10,9 +12,16 @@ class MoshServerConfig {
     this.rawOutput = '',
   });
 
+  /// Hostname or IP address of the server.
   final String host;
+
+  /// UDP port printed by `mosh-server`.
   final int port;
+
+  /// Session key printed by `mosh-server`.
   final MoshKey key;
+
+  /// Full raw bootstrap output used to create this config.
   final String rawOutput;
 
   static final RegExp _connectPattern = RegExp(
@@ -20,6 +29,7 @@ class MoshServerConfig {
     multiLine: true,
   );
 
+  /// Parses `mosh-server` startup output.
   factory MoshServerConfig.parse(String output, {required String host}) {
     final match = _connectPattern.firstMatch(output);
     if (match == null) {
