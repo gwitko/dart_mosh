@@ -270,6 +270,17 @@ void main() {
       expect(decoded.ackNum, 3);
       expect(decoded.throwawayNum, 1);
       expect(decoded.diff, [1, 2, 3]);
+      expect(decoded.isShutdown, isFalse);
+    });
+
+    test('detects the server shutdown sentinel state number', () {
+      // new_num (field 3) carrying uint64(-1) = 0xFFFFFFFFFFFFFFFF.
+      final decoded = MoshTransportInstruction.decode(
+        Uint8List.fromList([0x18, ...List<int>.filled(9, 0xff), 0x01]),
+      );
+
+      expect(decoded.newNum, MoshTransportInstruction.shutdownStateNum);
+      expect(decoded.isShutdown, isTrue);
     });
 
     test('encodes user keystrokes and resize instructions', () {
@@ -423,6 +434,41 @@ void main() {
         expect(ports.toSet().difference(before), isNotEmpty);
       },
     );
+
+    test('completes done when the server signals shutdown', () async {
+      final server = await RawDatagramSocket.bind(
+        InternetAddress.loopbackIPv4,
+        0,
+      );
+      addTearDown(server.close);
+      final key = MoshKey.parse('AAECAwQFBgcICQoLDA0ODw');
+      final cipher = MoshPacketCipher.aesOcb(key);
+
+      server.listen((event) {
+        if (event != RawSocketEvent.read) return;
+        final datagram = server.receive();
+        if (datagram == null) return;
+        server.send(
+          _serverShutdownPacket(cipher),
+          datagram.address,
+          datagram.port,
+        );
+      });
+
+      final session = await MoshSession.connect(
+        server: MoshServerConfig(
+          host: '127.0.0.1',
+          port: server.port,
+          key: key,
+        ),
+        cipher: cipher,
+        columns: 80,
+        rows: 24,
+      );
+      addTearDown(session.close);
+
+      await session.done.timeout(const Duration(seconds: 2));
+    });
   });
 
   group('AesOcb', () {
@@ -529,6 +575,28 @@ void main() {
 
 Future<void> _settle() =>
     Future<void>.delayed(const Duration(milliseconds: 150));
+
+/// Builds an encrypted server-to-client packet carrying the Mosh shutdown
+/// sentinel (a transport instruction whose new state number is `uint64(-1)`).
+Uint8List _serverShutdownPacket(MoshPacketCipher cipher) {
+  // Transport instruction: new_num (field 3) = 0xFFFFFFFFFFFFFFFF.
+  final instruction = Uint8List.fromList([
+    0x18,
+    ...List<int>.filled(9, 0xff),
+    0x01,
+  ]);
+  final fragment = moshFragments(
+    0,
+    moshCompress(instruction),
+    moshDefaultSendMtu,
+  ).first;
+  final packet = MoshTransportPacket(
+    timestamp: 0,
+    timestampReply: MoshTransportPacket.noTimestamp,
+    payload: fragment.encode(),
+  );
+  return cipher.encrypt(nonce: 1, plaintext: packet.encode());
+}
 
 Uint8List _hex(String hex) {
   final normalized = hex.replaceAll(RegExp(r'\s+'), '');

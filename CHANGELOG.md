@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.3
+
+- Detect the server shutdown sentinel (`new_num == uint64(-1)`) so
+  `MoshSession.done` completes when the remote program exits, instead of
+  hanging until the caller closes the session.
+
 ## 0.0.2
 
 - Added public API documentation.

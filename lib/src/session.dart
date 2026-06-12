@@ -62,6 +62,7 @@ class MoshSession {
   late StreamSubscription<RawSocketEvent> _socketSub;
   Timer? _timer;
   var _closed = false;
+  var _serverShutdown = false;
   var _rehoming = false;
   var _sendSeq = 0;
   var _fragmentId = 0;
@@ -182,6 +183,18 @@ class MoshSession {
     if (!_done.isCompleted) _done.complete();
   }
 
+  /// Completes [done] when the server signals it is shutting down.
+  ///
+  /// Stops transmitting but leaves the streams and socket open so callers can
+  /// drain any final output before invoking [close].
+  void _handleServerShutdown() {
+    if (_closed || _serverShutdown) return;
+    _serverShutdown = true;
+    _timer?.cancel();
+    _timer = null;
+    if (!_done.isCompleted) _done.complete();
+  }
+
   void _handleSocketEvent(RawSocketEvent event) {
     if (event != RawSocketEvent.read || _closed) return;
 
@@ -222,6 +235,11 @@ class MoshSession {
       throw MoshException(
         'Unsupported Mosh protocol version: ${transport.protocolVersion}.',
       );
+    }
+
+    if (transport.isShutdown) {
+      _handleServerShutdown();
+      return;
     }
 
     if (transport.ackNum > _serverAckedNum) {

@@ -1,6 +1,6 @@
 name: dart_mosh
 description: "Dart building blocks for launching and speaking the Mosh mobile shell protocol."
-version: 0.0.2
+version: 0.0.3
 homepage: https://github.com/gwitko/dart_mosh
 repository: https://github.com/gwitko/dart_mosh
 issue_tracker: https://github.com/gwitko/dart_mosh/issues

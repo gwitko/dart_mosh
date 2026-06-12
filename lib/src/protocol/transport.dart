@@ -37,6 +37,21 @@ class MoshTransportInstruction {
   /// Random padding bytes.
   final List<int> chaff;
 
+  /// State number Mosh reserves to signal that a peer is shutting down.
+  ///
+  /// On the wire this is the 64-bit value `uint64(-1)`
+  /// (`0xFFFFFFFFFFFFFFFF`), which decodes to `-1` as a signed 64-bit Dart
+  /// integer. The server sends an instruction carrying this state number when
+  /// the remote program (typically the login shell) has exited.
+  static const int shutdownStateNum = -1;
+
+  /// Whether this instruction signals that the sending peer is shutting down.
+  ///
+  /// `mosh-server` sets the new state number to [shutdownStateNum] once its
+  /// child process exits, so a session can treat this as a clean end of
+  /// connection rather than waiting for a timeout.
+  bool get isShutdown => newNum == shutdownStateNum;
+
   /// Encodes this instruction as protobuf bytes.
   Uint8List encode() {
     final writer = ProtoWriter();
