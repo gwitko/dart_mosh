@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.0.4
+
+- Treat UDP send failures (e.g. the local interface going down) as ordinary
+  packet loss instead of throwing. The transmit loop keeps scheduling, so a
+  session recovers on its own when connectivity returns rather than surfacing
+  a `SocketException`.
+
 ## 0.0.3
 
 - Detect the server shutdown sentinel (`new_num == uint64(-1)`) so

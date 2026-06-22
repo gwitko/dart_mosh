@@ -342,12 +342,21 @@ class MoshSession {
         nonce: _sendSeq++,
         plaintext: transport.encode(),
       );
-      _socket.send(packet, _remoteAddress, _remotePort);
+      if (!_trySend(packet)) break;
     }
 
     _lastSentNum = newNum;
     _lastSendTime = now;
     _ackDeadline = -1;
+  }
+
+  bool _trySend(List<int> packet) {
+    try {
+      _socket.send(packet, _remoteAddress, _remotePort);
+      return true;
+    } on SocketException {
+      return false;
+    }
   }
 
   List<int> _chaff() {
